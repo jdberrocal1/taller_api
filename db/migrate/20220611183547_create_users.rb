@@ -3,9 +3,11 @@ class CreateUsers < ActiveRecord::Migration[6.1]
     create_table :users do |t|
       t.string :fname
       t.string :lname
+      t.string :state
+      t.string :city
       t.string :address
       t.string :dni
-      t.string :rol_id
+      t.bigint :role_id
 
       t.timestamps
     end
