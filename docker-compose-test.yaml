@@ -1,0 +1,31 @@
+version: '3'
+services:
+  taller_rspec:
+    build: .
+    image: taller:test
+    env_file: ./test.env
+    working_dir: /app
+    command: rspec spec
+    volumes:
+      - .:/app:cached
+    depends_on:
+    - taller_mariadb_rspec
+    environment:
+    - RUBY_GC_HEAP_INIT_SLOTS=1000000
+    - RUBY_HEAP_SLOTS_INCREMENT=1000000
+    - RUBY_HEAP_SLOTS_GROWTH_FACTOR=1
+    - RUBY_GC_MALLOC_LIMIT=1000000000
+    - RUBY_HEAP_FREE_MIN=500000
+
+  taller_mariadb_rspec:
+    image: mariadb
+    container_name: taller_mariadb_test
+    environment:
+    - MYSQL_ROOT_PASSWORD=password
+    - MYSQL_DATABASE=taller__test
+    volumes:
+    - maria-test:/var/lib/mysql
+
+volumes:
+  maria-test:
+    driver: local

@@ -1,0 +1,75 @@
+version: '3'
+services:
+  nignx:
+    image: nginx
+    volumes:
+    - ./server_config/dev.nginx.conf:/etc/nginx/conf.d/default.conf
+    - ./public:/app/public:ro
+    environment:
+    - VIRTUAL_HOST=taller.docker
+    expose:
+    - "80"
+    depends_on:
+    - taller
+    networks:
+      - taller_default
+
+  taller:
+    build: .
+    image: taller:dev
+    command: unicorn -c config/unicorn.rb -E development
+    stdin_open: true
+    tty: true
+    expose:
+    - "8080"
+    env_file: ./dev.env
+    working_dir: /app
+    volumes:
+    - .:/app
+    depends_on:
+    - taller_mariadb
+    networks:
+      - taller_default
+
+  taller_mariadb:
+    image: mariadb
+    container_name: taller_mariadb_dev
+    volumes:
+    - data-mysql:/var/lib/mysql
+    - ./mysql:/docker-entrypoint-initdb.d:ro
+    environment:
+    - MYSQL_ROOT_PASSWORD=password
+    - MYSQL_DATABASE=taller_development
+    ports:
+    - "3308:3306"
+    expose:
+      - "3306"
+    networks:
+      - taller_default
+
+  # redis:
+  #   image: redis
+  #   container_name: taller_redis_dev
+  #   networks:
+  #   - app
+
+  # worker:
+  #   image: taller:dev
+  #   command: bundle exec resque-pool -E development
+  #   env_file: ./dev.env
+  #   working_dir: /app
+  #   volumes:
+  #   - .:/app:cached
+  #   depends_on:
+  #   - mariadb
+  #   - redis
+  #   networks:
+  #   - app
+
+volumes:
+  data-mysql:
+    driver: local
+
+networks:
+  taller_default:
+    external: true
